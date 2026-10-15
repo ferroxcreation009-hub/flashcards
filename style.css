@@ -1,0 +1,17 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 1rem;
+}
+#app {
+  max-width: 600px;
+  margin: 0 auto;
+}
+form { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+input { flex: 1; padding: 0.5rem; }
+button { padding: 0.5rem 0.75rem; cursor: pointer; }
+ul { list-style: none; padding: 0; }
+.deck-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid #ddd; }
+.deck-row span { flex: 1; }
+.card-text { flex: 1; }
+.card-text div { opacity: 0.75; margin-top: 0.25rem; }
