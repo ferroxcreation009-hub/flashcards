@@ -133,7 +133,8 @@ function makeDeckRow(deck) {
     if (confirm('Delete "' + deck.name + '" and all its cards?')) deleteDeck(deck.id);
   });
 
-  row.append(makeText("span", deck.name), open, rename, remove);
+  const review = makeButton("Review", () => startReview(deck.id));
+  row.append(makeText("span", deck.name), review, open, rename, remove);
   return row;
 }
 
@@ -199,6 +200,64 @@ function renderDeck() {
   const list = document.createElement("ul");
   cards.forEach((card) => list.append(makeCardRow(card)));
   app.append(list);
+}
+/* ---------- Review screen ---------- */
+
+let reviewQueue = [];
+let reviewIndex = 0;
+let showingBack = false;
+
+function startReview(deckId) {
+  currentDeckId = deckId;
+  reviewQueue = loadCards().filter((c) => c.deckId === deckId);
+  reviewIndex = 0;
+  showingBack = false;
+  renderReview();
+}
+
+// For now the rating is only logged. scheduler.js will use it in Step 3
+function rateCard(rating) {
+  console.log("Rated:", reviewQueue[reviewIndex].front, "->", rating);
+  reviewIndex += 1;
+  showingBack = false;
+  renderReview();
+}
+
+function renderReview() {
+  const deck = decks.find((d) => d.id === currentDeckId);
+  if (!deck) return goHome();
+
+  app.replaceChildren();
+  app.append(makeButton("← Back to decks", goHome), makeText("h1", "Review: " + deck.name));
+
+  if (reviewQueue.length === 0) {
+    app.append(makeText("p", "No cards to review in this deck."));
+    return;
+  }
+  if (reviewIndex >= reviewQueue.length) {
+    app.append(makeText("p", "All done! You reviewed " + reviewQueue.length + " cards."));
+    return;
+  }
+
+  const card = reviewQueue[reviewIndex];
+  app.append(makeText("p", "Card " + (reviewIndex + 1) + " of " + reviewQueue.length));
+
+  const box = makeText("div", showingBack ? card.back : card.front);
+  box.className = "review-card";
+  app.append(box);
+
+  if (!showingBack) {
+    app.append(makeButton("Show answer", () => {
+      showingBack = true;
+      renderReview();
+    }));
+    return;
+  }
+
+  const row = document.createElement("div");
+  row.className = "rating-row";
+  ["Again", "Hard", "Good", "Easy"].forEach((r) => row.append(makeButton(r, () => rateCard(r))));
+  app.append(row);
 }
 
 renderHome();

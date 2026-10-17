@@ -15,3 +15,5 @@ ul { list-style: none; padding: 0; }
 .deck-row span { flex: 1; }
 .card-text { flex: 1; }
 .card-text div { opacity: 0.75; margin-top: 0.25rem; }
+.review-card { padding: 2rem 1rem; margin: 1rem 0; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-size: 1.4rem; }
+.rating-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
