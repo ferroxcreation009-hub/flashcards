@@ -7,9 +7,8 @@ function makeId() {
 }
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return todayString();
 }
-
 /* ---------- Decks ---------- */
 
 function addDeck(name) {
@@ -119,6 +118,9 @@ function makeForm(placeholders, buttonLabel, onSubmit) {
 }
 
 /* ---------- Home screen ---------- */
+function dueCount(deckId) {
+  return loadCards().filter((c) => c.deckId === deckId && c.dueDate <= today()).length;
+}
 
 function makeDeckRow(deck) {
   const row = document.createElement("li");
@@ -134,7 +136,7 @@ function makeDeckRow(deck) {
   });
 
   const review = makeButton("Review", () => startReview(deck.id));
-  row.append(makeText("span", deck.name), review, open, rename, remove);
+  row.append(makeText("span", deck.name + " (" + dueCount(deck.id) + " due)"), review, open, rename, remove);
   return row;
 }
 
@@ -209,7 +211,7 @@ let showingBack = false;
 
 function startReview(deckId) {
   currentDeckId = deckId;
-  reviewQueue = loadCards().filter((c) => c.deckId === deckId);
+  reviewQueue = loadCards().filter((c) => c.deckId === deckId && c.dueDate <= today());
   reviewIndex = 0;
   showingBack = false;
   renderReview();
@@ -217,7 +219,9 @@ function startReview(deckId) {
 
 // For now the rating is only logged. scheduler.js will use it in Step 3
 function rateCard(rating) {
-  console.log("Rated:", reviewQueue[reviewIndex].front, "->", rating);
+  const card = reviewQueue[reviewIndex];
+  const updated = scheduleCard(card, rating);
+  saveCards(loadCards().map((c) => (c.id === card.id ? updated : c)));
   reviewIndex += 1;
   showingBack = false;
   renderReview();
