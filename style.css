@@ -270,4 +270,7 @@ ul {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
- 
+.backup-row button {
+  background: #fff;
+  border: 2px solid #c7d2fe;
+}
