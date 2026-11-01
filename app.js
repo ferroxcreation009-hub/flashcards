@@ -9,6 +9,7 @@ function makeId() {
 function today() {
   return todayString();
 }
+
 /* ---------- Decks ---------- */
 
 function addDeck(name) {
@@ -38,7 +39,7 @@ function deleteDeck(id) {
 
 /* ---------- Cards ---------- */
 
-// Scheduling fields start at defaults so scheduler.js can use them later
+// Scheduling fields start at defaults so scheduler.js can use them
 function addCard(deckId, front, back) {
   const f = front.trim();
   const b = back.trim();
@@ -67,6 +68,10 @@ function editCard(id, front, back) {
 function deleteCard(id) {
   saveCards(loadCards().filter((c) => c.id !== id));
   renderDeck();
+}
+
+function dueCount(deckId) {
+  return loadCards().filter((c) => c.deckId === deckId && c.dueDate <= today()).length;
 }
 
 /* ---------- Navigation ---------- */
@@ -118,14 +123,12 @@ function makeForm(placeholders, buttonLabel, onSubmit) {
 }
 
 /* ---------- Home screen ---------- */
-function dueCount(deckId) {
-  return loadCards().filter((c) => c.deckId === deckId && c.dueDate <= today()).length;
-}
 
 function makeDeckRow(deck) {
   const row = document.createElement("li");
   row.className = "deck-row";
 
+  const review = makeButton("Review", () => startReview(deck.id));
   const open = makeButton("Open", () => openDeck(deck.id));
   const rename = makeButton("Rename", () => {
     const newName = prompt("Rename deck:", deck.name);
@@ -135,8 +138,10 @@ function makeDeckRow(deck) {
     if (confirm('Delete "' + deck.name + '" and all its cards?')) deleteDeck(deck.id);
   });
 
-  const review = makeButton("Review", () => startReview(deck.id));
-  row.append(makeText("span", deck.name + " (" + dueCount(deck.id) + " due)"), review, open, rename, remove);
+  row.append(
+    makeText("span", deck.name + " (" + dueCount(deck.id) + " due)"),
+    review, open, rename, remove
+  );
   return row;
 }
 
@@ -149,12 +154,13 @@ function renderHome() {
 
   if (decks.length === 0) {
     app.append(makeText("p", "No decks yet. Add your first one above."));
-    return;
+  } else {
+    const list = document.createElement("ul");
+    decks.forEach((deck) => list.append(makeDeckRow(deck)));
+    app.append(list);
   }
 
-  const list = document.createElement("ul");
-  decks.forEach((deck) => list.append(makeDeckRow(deck)));
-  app.append(list);
+  app.append(makeBackupRow());
 }
 
 /* ---------- Deck screen (cards) ---------- */
@@ -203,12 +209,14 @@ function renderDeck() {
   cards.forEach((card) => list.append(makeCardRow(card)));
   app.append(list);
 }
+
 /* ---------- Review screen ---------- */
 
 let reviewQueue = [];
 let reviewIndex = 0;
 let showingBack = false;
 
+// Only cards due today or earlier enter the queue
 function startReview(deckId) {
   currentDeckId = deckId;
   reviewQueue = loadCards().filter((c) => c.deckId === deckId && c.dueDate <= today());
@@ -217,7 +225,7 @@ function startReview(deckId) {
   renderReview();
 }
 
-// For now the rating is only logged. scheduler.js will use it in Step 3
+// scheduleCard (scheduler.js) returns the updated card; we save it
 function rateCard(rating) {
   const card = reviewQueue[reviewIndex];
   const updated = scheduleCard(card, rating);
@@ -262,6 +270,93 @@ function renderReview() {
   row.className = "rating-row";
   ["Again", "Hard", "Good", "Easy"].forEach((r) => row.append(makeButton(r, () => rateCard(r))));
   app.append(row);
+}
+
+/* ---------- Backup: export and import ---------- */
+
+function exportData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    decks: loadDecks(),
+    cards: loadCards(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "flashcards-backup-" + today() + ".json";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+// Check the file before touching any saved data, so a bad file can't wipe it
+function isValidBackup(data) {
+  if (!data || !Array.isArray(data.decks) || !Array.isArray(data.cards)) return false;
+  const decksOk = data.decks.every(
+    (d) => d && typeof d.id === "string" && typeof d.name === "string"
+  );
+  const deckIds = new Set(data.decks.map((d) => d.id));
+  const cardsOk = data.cards.every(
+    (c) =>
+      c &&
+      typeof c.id === "string" &&
+      deckIds.has(c.deckId) &&
+      typeof c.front === "string" &&
+      typeof c.back === "string" &&
+      typeof c.interval === "number" &&
+      typeof c.easeFactor === "number" &&
+      typeof c.repetitions === "number" &&
+      typeof c.dueDate === "string"
+  );
+  return decksOk && cardsOk;
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try {
+      data = JSON.parse(reader.result);
+    } catch (error) {
+      alert("That file is not valid JSON.");
+      return;
+    }
+    if (!isValidBackup(data)) {
+      alert("That file is not a valid flashcards backup. Nothing was changed.");
+      return;
+    }
+    const message =
+      "This replaces ALL current data with " + data.decks.length + " decks and " +
+      data.cards.length + " cards from the file. Continue?";
+    if (!confirm(message)) return;
+    saveDecks(data.decks);
+    saveCards(data.cards);
+    decks = loadDecks();
+    renderHome();
+  };
+  reader.readAsText(file);
+}
+
+function makeBackupRow() {
+  const row = document.createElement("div");
+  row.className = "rating-row backup-row";
+
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = ".json,application/json";
+  fileInput.hidden = true;
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files[0]) importData(fileInput.files[0]);
+    fileInput.value = "";
+  });
+
+  row.append(
+    makeButton("Export backup", exportData),
+    makeButton("Import backup", () => fileInput.click()),
+    fileInput
+  );
+  return row;
 }
 
 renderHome();
