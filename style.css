@@ -166,12 +166,12 @@ ul {
 }
 
 .deck-row button {
-  .deck-row button {
+  
   padding: 0.4rem 0.75rem;
   font-size: 0.9rem;
   background: #e0e7ff;
 }
-}
+
 
 /* First action (Review on decks, Edit on cards) */
 .deck-row button:nth-child(2) {
