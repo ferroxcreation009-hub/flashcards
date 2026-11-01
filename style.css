@@ -1,19 +1,273 @@
+/* Flashcards: colourful, professional theme. No external fonts or libraries. */
+
+:root {
+  --indigo: #4f46e5;
+  --violet: #7c3aed;
+  --pink: #ec4899;
+  --ink: #1e1b4b;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --soft: #eef2ff;
+}
+
+* { box-sizing: border-box; }
+
 body {
-  font-family: system-ui, sans-serif;
   margin: 0;
-  padding: 1rem;
+  min-height: 100vh;
+  padding: 1.5rem 1rem;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%) fixed;
 }
+
+/* The whole app sits in one white card */
 #app {
-  max-width: 600px;
+  max-width: 640px;
   margin: 0 auto;
+  padding: 1.75rem;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(30, 27, 75, 0.35);
 }
-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
-input { flex: 1; padding: 0.5rem; }
-button { padding: 0.5rem 0.75rem; cursor: pointer; }
-ul { list-style: none; padding: 0; }
-.deck-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid #ddd; }
-.deck-row span { flex: 1; }
-.card-text { flex: 1; }
-.card-text div { opacity: 0.75; margin-top: 0.25rem; }
-.review-card { padding: 2rem 1rem; margin: 1rem 0; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-size: 1.4rem; }
-.rating-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+h1 {
+  margin: 0 0 1.25rem;
+  font-size: 1.75rem;
+  background: linear-gradient(90deg, var(--indigo), var(--pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+p { color: var(--muted); }
+
+/* ---------- Forms and inputs ---------- */
+
+form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+input {
+  flex: 1;
+  min-width: 8rem;
+  padding: 0.7rem 0.9rem;
+  font: inherit;
+  color: var(--ink);
+  background: #fafafa;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+input:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--violet);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+}
+
+/* ---------- Buttons ---------- */
+
+button {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.55rem 0.95rem;
+  color: var(--indigo);
+  background: var(--soft);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.15s, filter 0.15s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  background: #e0e7ff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+button:active { transform: translateY(0); }
+
+button:focus-visible {
+  outline: 3px solid var(--pink);
+  outline-offset: 2px;
+}
+
+/* Main action buttons: Add deck, Add card */
+form button[type="submit"] {
+  padding-inline: 1.2rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--indigo), var(--violet));
+}
+
+form button[type="submit"]:hover {
+  background: linear-gradient(135deg, #4338ca, #6d28d9);
+}
+
+/* "Back to decks" button at the top of a screen */
+#app > button:first-child { margin-bottom: 1rem; }
+
+/* "Show answer" button under the review card */
+.review-card + button {
+  display: block;
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 1.05rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--indigo), var(--violet));
+}
+
+.review-card + button:hover {
+  background: linear-gradient(135deg, #4338ca, #6d28d9);
+}
+
+/* ---------- Deck and card lists ---------- */
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.deck-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 1rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--violet);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.deck-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.15);
+}
+
+/* Rotate the accent colour so lists look lively */
+.deck-row:nth-child(3n + 1) { border-left-color: var(--indigo); }
+.deck-row:nth-child(3n + 2) { border-left-color: var(--violet); }
+.deck-row:nth-child(3n) { border-left-color: var(--pink); }
+
+.deck-row span {
+  flex: 1;
+  min-width: 8rem;
+  font-weight: 600;
+}
+
+.deck-row button {
+  .deck-row button {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+  background: #e0e7ff;
+}
+}
+
+/* First action (Review on decks, Edit on cards) */
+.deck-row button:nth-child(2) {
+  color: #fff;
+  background: var(--indigo);
+}
+
+.deck-row button:nth-child(2):hover { background: #4338ca; }
+
+/* Delete is always the last button in the row */
+.deck-row button:last-child {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.deck-row button:last-child:hover {
+  background: #fecaca;
+  box-shadow: 0 4px 12px rgba(185, 28, 28, 0.2);
+}
+
+.card-text {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.card-text strong { display: block; }
+
+.card-text div {
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+/* ---------- Review screen ---------- */
+
+.review-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 9rem;
+  margin: 1.25rem 0;
+  padding: 2.5rem 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  word-break: break-word;
+  color: var(--ink);
+  background: linear-gradient(135deg, #eef2ff, #fdf2f8);
+  border: 2px solid #c7d2fe;
+  border-radius: 16px;
+}
+
+.rating-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Again / Hard / Good / Easy, each with its own colour */
+.rating-row:not(.backup-row) button {
+  flex: 1;
+  min-width: 4.5rem;
+  padding: 0.8rem 0.5rem;
+  color: #fff;
+}
+
+.rating-row:not(.backup-row) button:nth-child(1) { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.rating-row:not(.backup-row) button:nth-child(2) { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.rating-row:not(.backup-row) button:nth-child(3) { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.rating-row:not(.backup-row) button:nth-child(4) { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+.rating-row:not(.backup-row) button:hover { filter: brightness(1.1); }
+
+/* ---------- Backup row ---------- */
+
+.backup-row {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--line);
+}
+
+.backup-row button { flex: 1; }
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 480px) {
+  body { padding: 0.75rem; }
+  #app { padding: 1.15rem; border-radius: 16px; }
+  h1 { font-size: 1.4rem; }
+  .review-card { padding: 1.75rem 1rem; font-size: 1.2rem; }
+  .deck-row span,
+  .card-text { flex-basis: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+ 
